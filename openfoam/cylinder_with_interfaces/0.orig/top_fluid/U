@@ -1,0 +1,35 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+
+dimensions      [0 1 -1 0 0 0 0];
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    walls
+    {
+        type            noSlip;
+    }
+    
+    top_inlet
+    {
+        type            fixedValue;
+        value           uniform (0 0 0.1);
+    }
+    
+    top_outlet
+    {
+        type            pressureInletOutletVelocity;
+        value           uniform (0 0 0);
+    }
+    
+    top_fluid_to_slab
+    {
+        type            noSlip;
+    }
+}

@@ -1,0 +1,37 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      p;
+}
+
+dimensions      [1 -1 -2 0 0 0 0];
+internalField   uniform 101325;
+
+boundaryField
+{
+    walls
+    {
+        type            calculated;
+        value           uniform 101325;
+    }
+    
+    bottom_inlet
+    {
+        type            calculated;
+        value           uniform 101325;
+    }
+    
+    bottom_outlet
+    {
+        type            calculated;
+        value           uniform 101325;
+    }
+    
+    bottom_fluid_to_slab
+    {
+        type            calculated;
+        value           uniform 101325;
+    }
+}

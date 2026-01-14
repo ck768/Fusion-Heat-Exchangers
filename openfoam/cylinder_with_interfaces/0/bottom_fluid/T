@@ -1,0 +1,44 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      T;
+}
+
+dimensions      [0 0 0 1 0 0 0];
+internalField   uniform 300;
+
+boundaryField
+{
+    bottom_inlet
+    {
+        type zeroGradient;   // let temperature evolve naturally
+    }
+
+    bottom_outlet
+    {
+        type zeroGradient;   // standard outlet
+    }
+
+    walls
+    {
+        type fixedValue;
+        value uniform 275;   // constant wall temperature
+    }
+
+    bottom_slab_wall
+    {
+        type fixedValue;
+        value uniform 275;   // constant wall temperature
+    }
+
+
+    bottom_fluid_to_slab
+    {
+        type compressible::turbulentTemperatureRadCoupledMixed;
+        Tnbr T;
+        kappaMethod fluidThermo;
+        value           uniform 400;
+    }
+}

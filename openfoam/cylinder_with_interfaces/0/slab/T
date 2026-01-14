@@ -1,0 +1,34 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      T;
+}
+
+dimensions      [0 0 0 1 0 0 0];
+internalField   uniform 400;
+
+boundaryField
+{
+    walls
+    {
+        type            zeroGradient;
+    }
+    
+    slab_to_top_fluid
+    {
+        type            compressible::turbulentTemperatureRadCoupledMixed;
+        Tnbr            T;
+        kappaMethod     solidThermo;
+        value           uniform 400;
+    }
+    
+    slab_to_bottom_fluid
+    {
+        type            compressible::turbulentTemperatureRadCoupledMixed;
+        Tnbr            T;
+        kappaMethod     solidThermo;
+        value           uniform 400;
+    }
+}
