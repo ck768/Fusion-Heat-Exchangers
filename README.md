@@ -33,3 +33,12 @@ Then, activate the environment:
 ```
 mamba activate fusion-hx-env
 ```
+
+Now `cadquery ` and `jupter-cadquery` can be installed with: 
+
+```
+mamba install -c conda-forge -c cadquery cadquery=master
+pip install jupyter-cadquery
+pip install cadquery-ocp==7.7.2.0
+pip install path.py
+```
