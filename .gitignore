@@ -1,2 +1,3 @@
 *.bp
 *.bp/*
+*.DS_Store
