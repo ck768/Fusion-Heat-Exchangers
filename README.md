@@ -22,23 +22,31 @@ Verify the installation by running:
 mamba --version
 ```
 
+This package requires two environments to run, one for CADQuery and one for OpenFOAM/FESTIM. To set up a new environment with the right dependencies for CADQuery, use: 
+
 Then, set up a new environment with the right dependencies (e.g. dolfinx, FESTIM) using:
 
 ```
-mamba create -f environment.yml 
+mamba create -f cadquery_env.yml 
 ```
 
-Then, activate the environment: 
+Then, activate the environment to use CADQuery for geometry creation: 
 
 ```
-mamba activate fusion-hx-env
+mamba activate cadquery-env
 ```
 
-Now `cadquery ` and `jupter-cadquery` can be installed with: 
-
+Deactive the environment using 
 ```
-mamba install -c conda-forge -c cadquery cadquery=master
-pip install jupyter-cadquery
-pip install cadquery-ocp==7.7.2.0
-pip install path.py
+conda deactivate
+```
+
+and set up a second environment with the right meshing, OpenFOAM, and FESTIM dependencies with: 
+```
+conda env create -f environment.yml
+```
+
+Activate this environment using 
+```
+conda activate fusion-hx-env
 ```
