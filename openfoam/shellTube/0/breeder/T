@@ -1,0 +1,39 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      T;
+}
+
+dimensions      [0 0 0 1 0 0 0];
+internalField   uniform 350;  // Start closer to inlet temp
+
+boundaryField
+{
+    breeder_inlet
+    {
+        type            fixedValue;
+        value           uniform 450;
+    }
+    
+    breeder_outlet
+    {
+        type            zeroGradient;  // Use zeroGradient for outlet
+    }
+    
+    breeder_walls
+    {
+        type            zeroGradient;
+    }
+    
+    breeder_to_walls
+    {
+        type            compressible::turbulentTemperatureRadCoupledMixed;
+        Tnbr            T;
+        kappaMethod     fluidThermo;
+        qrNbr           none;
+        qr              none;
+        value           uniform 350;   
+    }
+}

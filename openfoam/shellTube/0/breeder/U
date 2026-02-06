@@ -1,0 +1,36 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+
+dimensions      [0 1 -1 0 0 0 0];
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    breeder_walls
+    {
+        type            noSlip;
+    }
+    
+    breeder_inlet
+    {
+        type            flowRateInletVelocity;  // Better than fixedValue
+        massFlowRate    constant 0.01;        // Adjust to desired flow rate (kg/s)
+        rhoInlet        1000;                   // Density
+    }
+    
+    breeder_outlet
+    {
+        type            pressureInletOutletVelocity;
+        value           uniform (0 0 0);
+    }
+    
+    breeder_to_walls
+    {
+        type            noSlip;
+    }
+}

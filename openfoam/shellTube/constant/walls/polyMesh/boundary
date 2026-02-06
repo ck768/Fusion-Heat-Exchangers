@@ -22,15 +22,15 @@ FoamFile
     {
         type            patch;
         physicalType    patch;
-        nFaces          32906;
-        startFace       703402;
+        nFaces          296;
+        startFace       299028;
     }
     walls_to_coolant
     {
         type            mappedWall;
         inGroups        1(wall);
-        nFaces          55103;
-        startFace       736308;
+        nFaces          53814;
+        startFace       299324;
         sampleMode      nearestPatchFace;
         sampleRegion    coolant;
         samplePatch     coolant_to_walls;
@@ -39,8 +39,8 @@ FoamFile
     {
         type            mappedWall;
         inGroups        1(wall);
-        nFaces          86811;
-        startFace       791411;
+        nFaces          51050;
+        startFace       353138;
         sampleMode      nearestPatchFace;
         sampleRegion    breeder;
         samplePatch     breeder_to_walls;

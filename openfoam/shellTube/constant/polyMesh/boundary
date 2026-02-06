@@ -16,56 +16,70 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-7
+9
 (
     walls_surface
     {
         type            patch;
         physicalType    patch;
-        nFaces          32906;
-        startFace       3329082;
+        nFaces          296;
+        startFace       990196;
+    }
+    walls_coolant_interfaces
+    {
+        type            patch;
+        physicalType    patch;
+        nFaces          0;
+        startFace       990492;
+    }
+    walls_breeder_interfaces
+    {
+        type            patch;
+        physicalType    patch;
+        nFaces          0;
+        startFace       990492;
     }
     coolant_walls
     {
         type            patch;
         physicalType    patch;
-        nFaces          26219;
-        startFace       3361988;
+        nFaces          1042;
+        startFace       990492;
     }
     coolant_inlet
     {
         type            patch;
         physicalType    patch;
-        nFaces          757;
-        startFace       3388207;
+        nFaces          57;
+        startFace       991534;
     }
     coolant_outlet
     {
         type            patch;
         physicalType    patch;
-        nFaces          757;
-        startFace       3388964;
+        nFaces          57;
+        startFace       991591;
     }
     breeder_walls
     {
         type            patch;
         physicalType    patch;
-        nFaces          157625;
-        startFace       3389721;
+        nFaces          1900;
+        startFace       991648;
     }
     breeder_outlet
     {
         type            patch;
         physicalType    patch;
-        nFaces          212;
-        startFace       3547346;
+        nFaces          57;
+        startFace       993548;
     }
     breeder_inlet
     {
         type            patch;
         physicalType    patch;
-        nFaces          212;
-        startFace       3547558;
+        nFaces          55;
+        startFace       993605;
     }
 )
 

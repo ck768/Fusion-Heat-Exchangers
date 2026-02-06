@@ -16,11 +16,11 @@ stopAt          endTime;
 
 endTime         100;
 
-deltaT          .5;  // Start with very small time step
+deltaT          0.05;  // Start with very small time step
 
 writeControl    adjustableRunTime;
 
-writeInterval   1;
+writeInterval   0.5;
 
 purgeWrite      0;
 
@@ -38,6 +38,6 @@ runTimeModifiable yes;
 
 adjustTimeStep  no;
 
-maxCo           10;   // Maximum Courant number
+maxCo           1;   // Maximum Courant number
 
-maxDi           10;    // Maximum Diffusion number
+maxDi           50;    // Maximum Diffusion number

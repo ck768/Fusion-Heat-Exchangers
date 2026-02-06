@@ -22,29 +22,29 @@ FoamFile
     {
         type            patch;
         physicalType    patch;
-        nFaces          157625;
-        startFace       1902762;
+        nFaces          1900;
+        startFace       352707;
     }
     breeder_outlet
     {
         type            patch;
         physicalType    patch;
-        nFaces          212;
-        startFace       2060387;
+        nFaces          57;
+        startFace       354607;
     }
     breeder_inlet
     {
         type            patch;
         physicalType    patch;
-        nFaces          212;
-        startFace       2060599;
+        nFaces          55;
+        startFace       354664;
     }
     breeder_to_walls
     {
         type            mappedWall;
         inGroups        1(wall);
-        nFaces          86811;
-        startFace       2060811;
+        nFaces          51050;
+        startFace       354719;
         sampleMode      nearestPatchFace;
         sampleRegion    walls;
         samplePatch     walls_to_breeder;

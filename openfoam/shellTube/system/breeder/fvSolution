@@ -1,10 +1,3 @@
-/*--------------------------------*- C++ -*----------------------------------*\
-| =========                 |                                                 |
-| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  dev                                   |
-|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
-|    \\/     M anipulation  |                                                 |
-\*---------------------------------------------------------------------------*/
 FoamFile
 {
     version     2.0;
@@ -12,84 +5,65 @@ FoamFile
     class       dictionary;
     object      fvSolution;
 }
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 solvers
 {
-    rho
+    "rho.*"
     {
         solver          PCG;
         preconditioner  DIC;
-        tolerance       1e-7;
-        relTol          0.1;
-    }
-
-    rhoFinal
-    {
-        $rho;
         tolerance       1e-7;
         relTol          0;
     }
 
     p_rgh
     {
-        solver           GAMG;
-        tolerance        1e-7;
-        relTol           0.01;
-
-        smoother         GaussSeidel;
-
+        solver          GAMG;
+        smoother        GaussSeidel;
+        tolerance       1e-7;
+        relTol          0.01;
     }
 
     p_rghFinal
     {
         $p_rgh;
-        tolerance        1e-7;
-        relTol           0;
+        relTol          0;
     }
 
-    "(U|h|k|epsilon|R)"
+    "(U|h|e)"
     {
-        solver           PBiCGStab;
-        preconditioner   DILU;
-        tolerance        1e-7;
-        relTol           0.1;
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-8;
+        relTol          0.01;
     }
 
-    "(U|h|k|epsilon|R)Final"
+    "(U|h|e)Final"
     {
         $U;
-        tolerance        1e-7;
-        relTol           0;
+        relTol          0;
     }
 }
 
 PIMPLE
 {
-    //momentumPredictor   yes;
-    momentumPredictor false;
-    nOuterCorrectors 40;
-    nCorrectors     3;
-    consistent      true;
-    nCorrectors         2;
-    nNonOrthogonalCorrectors 0;
-    residualControl
-    {
-        p_rgh
-        {
-            tolerance 1e-3;
-            relTol 0;
-        }
-    }
+    momentumPredictor   yes;
+    nOuterCorrectors    10;      // Increased
+    nCorrectors         3;        // Increased
+    nNonOrthogonalCorrectors 2;  // Added
 }
 
 relaxationFactors
 {
+    fields
+    {
+        rho             0.3;   // More aggressive
+        p_rgh           0.3;
+    }
     equations
     {
-        "h.*"           1;
-        "U.*"           1;
+        U               0.3;
+        h               0.3;
+        e               0.3;
     }
 }
-
-// ************************************************************************* //

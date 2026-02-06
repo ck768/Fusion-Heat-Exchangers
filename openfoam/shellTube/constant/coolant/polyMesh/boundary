@@ -22,29 +22,29 @@ FoamFile
     {
         type            patch;
         physicalType    patch;
-        nFaces          26219;
-        startFace       581004;
+        nFaces          1042;
+        startFace       233597;
     }
     coolant_inlet
     {
         type            patch;
         physicalType    patch;
-        nFaces          757;
-        startFace       607223;
+        nFaces          57;
+        startFace       234639;
     }
     coolant_outlet
     {
         type            patch;
         physicalType    patch;
-        nFaces          757;
-        startFace       607980;
+        nFaces          57;
+        startFace       234696;
     }
     coolant_to_walls
     {
         type            mappedWall;
         inGroups        1(wall);
-        nFaces          55103;
-        startFace       608737;
+        nFaces          53814;
+        startFace       234753;
         sampleMode      nearestPatchFace;
         sampleRegion    walls;
         samplePatch     walls_to_coolant;

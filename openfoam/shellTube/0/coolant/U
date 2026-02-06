@@ -1,0 +1,36 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+
+dimensions      [0 1 -1 0 0 0 0];
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    coolant_walls
+    {
+        type            noSlip;
+    }
+    
+    coolant_inlet
+    {
+        type            flowRateInletVelocity;
+        massFlowRate    constant 0.05;  // Adjust
+        rhoInlet        1000;
+    }
+    
+    coolant_outlet
+    {
+        type            pressureInletOutletVelocity;
+        value           uniform (0 0 0);
+    }
+    
+    coolant_to_walls
+    {
+        type            noSlip;
+    }
+}

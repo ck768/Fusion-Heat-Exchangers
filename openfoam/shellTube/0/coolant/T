@@ -1,0 +1,38 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      T;
+}
+
+dimensions      [0 0 0 1 0 0 0];
+internalField   uniform 300;
+
+boundaryField
+{
+    coolant_inlet
+        {
+            type fixedValue;
+            value uniform 300;
+        }
+
+    coolant_outlet
+    {
+        type            zeroGradient;
+    }
+
+    coolant_walls
+    {
+        type zeroGradient;   // let temperature evolve naturally
+    }
+
+    coolant_to_walls
+    {
+        type            compressible::turbulentTemperatureRadCoupledMixed;
+        Tnbr            T;
+        kappaMethod     fluidThermo;
+        value           uniform 300;   
+    }
+
+}

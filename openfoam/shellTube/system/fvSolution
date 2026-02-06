@@ -19,5 +19,17 @@ PIMPLE
     nOuterCorrectors 1;
 }
 
+relaxationFactors
+{
+    fields
+    {
+        T               0.7;   // Temperature relaxation for solid/fluid
+    }
+
+    equations
+    {
+        U               0.3;   // Velocity
+    }
+}
 
 // ************************************************************************* //
