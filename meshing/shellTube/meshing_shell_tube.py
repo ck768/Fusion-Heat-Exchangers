@@ -1,18 +1,18 @@
 import gmsh
 
-## Definining mesh sizes
+# Definining mesh sizes
 bl_min = 3.0
 bl_max = 15.0
 bl_dist_min = 1.0
-bl_dist_max = 5.0
-curvature_factor = 25.0
-max_element_size = 20.0
+bl_dist_max = 10.0
+curvature_factor = 15.0
+max_element_size = 25.0
 
 gmsh.initialize()
-gmsh.option.setString("Geometry.OCCTargetUnit", "MM")
+gmsh.option.setString("Geometry.OCCTargetUnit", "M")
 gmsh.model.add("hx_openfoam")
 
-cad_file_path = "hx.step"
+cad_file_path = "hx_mm.step"
 gmsh.merge(cad_file_path)
 gmsh.model.occ.synchronize()
 
@@ -142,8 +142,8 @@ gmsh.model.addPhysicalGroup(2, [breeder_inlet], breeder_inlet_marker, name="bree
 gmsh.model.addPhysicalGroup(2, [breeder_outlet], breeder_outlet_marker, name="breeder_outlet")
 gmsh.model.addPhysicalGroup(2, breeder_walls, breeder_walls_marker, name="breeder_walls")
 gmsh.model.addPhysicalGroup(2, walls, walls_surf_marker, name="walls_surface")
-# gmsh.model.addPhysicalGroup(2, walls_breeder_interfaces, walls_breeder_interfaces_marker, name="walls_breeder_interfaces")
-# gmsh.model.addPhysicalGroup(2, walls_coolant_interfaces, walls_coolant_interfaces_marker, name="walls_coolant_interfaces")
+gmsh.model.addPhysicalGroup(2, walls_breeder_interfaces, walls_breeder_interfaces_marker, name="walls_breeder_interfaces")
+gmsh.model.addPhysicalGroup(2, walls_coolant_interfaces, walls_coolant_interfaces_marker, name="walls_coolant_interfaces")
 
 ##### GENERATE MESH #####
 gmsh.model.occ.synchronize()
@@ -175,7 +175,7 @@ except Exception as e:
     gmsh.fltk.run()
 
 ##### SAVE MESH #####
-output_file = "hx_bl_MM.msh"
+output_file = "hx_1_30_M.msh"
 gmsh.write(output_file)
 print(f"Mesh saved to {output_file}")
 
