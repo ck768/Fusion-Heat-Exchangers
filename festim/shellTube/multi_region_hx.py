@@ -5,32 +5,44 @@ from mpi4py import MPI
 import numpy as np
 
 ## Reading mesh
-
 mesh_path = "/Users/ckhurana/FESTIM/FESTIM-dev/openfoam/OpenFOAM/shellTubeHX/Fusion-Heat-Exchangers/openfoam/shellTube/hx.msh"
 
 mesh_data = gmsh.read_from_msh(
     mesh_path, MPI.COMM_WORLD, 0, gdim=3
 )
-
 mesh = mesh_data.mesh
 
 ft = mesh_data.facet_tags
 ct = mesh_data.cell_tags
 
 from dolfinx import plot
-import pyvista
 
 fdim = mesh.topology.dim - 1
 tdim = mesh.topology.dim
 mesh.topology.create_connectivity(fdim, tdim)
 topology, cell_types, x = plot.vtk_mesh(mesh, fdim, ft.indices)
 
+## Reading OpenFOAM fields using foam2dolfinx
+my_reader = OpenFOAMReader(filename="/Users/ckhurana/FESTIM/FESTIM-dev/openfoam/OpenFOAM/shellTubeHX/Fusion-Heat-Exchangers/openfoam/shellTube/case.foam", cell_type=10)
 
+def get_my_U_field(t, region):
+    closest_t = find_closest_value(my_reader.reader.time_values, float(t))
+    print("reading field at time:", closest_t, "region:", region)
+    u_field = my_reader.create_dolfinx_function(t=closest_t, name="U", subdomain=region)
+    return u_field
 
+def get_my_T_field(t, region):
+    closest_t = find_closest_value(my_reader.reader.time_values, float(t))
+    print("reading field at time:", closest_t, "region:", region)
+    T_field = my_reader.create_dolfinx_function(t=closest_t, name="T", subdomain=region)
+    return T_field
+
+## Defining material properties
 breeder_mat = F.Material(D_0=1e-3, E_D=0, K_S_0=10, E_K_S=0)
 coolant_mat = F.Material(D_0=1e-3, E_D=0, K_S_0=10, E_K_S=0)
 wall_mat = F.Material(D_0=1e-4, E_D=0, K_S_0=5, E_K_S=0)
 
+## Defining subdomains and boundary markers
 breeder_vol = F.VolumeSubdomain(id=3, material=breeder_mat)
 coolant_vol = F.VolumeSubdomain(id=2, material=coolant_mat)
 walls_vol = F.VolumeSubdomain(id=1, material=wall_mat)
@@ -50,20 +62,31 @@ coolant_inlet = F.SurfaceSubdomain(id=coolant_inlet_marker)
 coolant_outlet = F.SurfaceSubdomain(id=coolant_outlet_marker)
 breeder_inlet = F.SurfaceSubdomain(id=breeder_inlet_marker)
 breeder_outlet = F.SurfaceSubdomain(id=breeder_outlet_marker)
-walls_breeder_interfaces = F.SurfaceSubdomain(id=walls_breeder_interfaces_marker)
-walls_coolant_interfaces = F.SurfaceSubdomain(id=walls_coolant_interfaces_marker)
 
-my_model = F.HydrogenTransportProblemDiscontinuous()
+## Defining solver settings
+solver_options = {
+        "snes_type": "newtonls",
+        "snes_linesearch_type": "none",
+        "snes_atol": 1e-5,
+        "snes_rtol": 1e-10,
+        "snes_max_it": 50,
+        "snes_divergence_tolerance": 1e10,
+        "ksp_type": "gmres",
+        "pc_type": "hypre",
+        "pc_hypre_type": "boomeramg",
+        "ksp_rtol": 1e-8,
+        "ksp_max_it": 500,
+}
 
+## Defining hydrogen transport problem
+my_model = F.HydrogenTransportProblemDiscontinuous(petsc_options=solver_options)
 my_model.mesh = F.Mesh(mesh)
 
 # we need to pass the meshtags to the model directly
 my_model.facet_meshtags = ft
 my_model.volume_meshtags = ct
 
-my_model.subdomains = [
-    walls_coolant_interfaces, 
-    walls_breeder_interfaces, 
+my_model.subdomains = [ 
     coolant_outlet, 
     coolant_inlet, 
     breeder_outlet, 
@@ -83,8 +106,8 @@ my_model.surface_to_volume = {
 }
 
 my_model.interfaces = [
-    F.Interface(id=walls_breeder_interfaces_marker, subdomains=[breeder_vol, walls_vol], penalty_term=1e10),
-    F.Interface(id=walls_coolant_interfaces_marker, subdomains=[coolant_vol, walls_vol], penalty_term=1e10),
+    F.Interface(id=walls_breeder_interfaces_marker, subdomains=[breeder_vol, walls_vol], penalty_term=1e5),
+    F.Interface(id=walls_coolant_interfaces_marker, subdomains=[coolant_vol, walls_vol], penalty_term=1e5),
 ]
 
 H = F.Species("H", subdomains=[breeder_vol, coolant_vol, walls_vol])
@@ -94,43 +117,36 @@ my_model.species = [H]
 my_model.temperature = 400
 
 my_model.boundary_conditions = [
-    # F.FixedConcentrationBC(subdomain=outlet, value=0, species=H),
-    # F.FixedConcentrationBC(subdomain=top_surface, value=1, species=H),
     F.FixedConcentrationBC(subdomain=breeder_inlet, value=1, species=H),
-    F.FixedConcentrationBC(subdomain=coolant_inlet, value=2, species=H),
-    # F.SievertsBC(subdomain=top_slab_interface, S_0=slab.K_S_0, E_S=slab.E_K_S, pressure=100, species=H),
-    # F.SievertsBC(subdomain=bottom_slab_interface, S_0=slab.K_S_0, E_S=slab.E_K_S, pressure=100, species=H)
+    F.FixedConcentrationBC(subdomain=coolant_inlet, value=0, species=H),
 ]
 
-my_reader = OpenFOAMReader(filename="/Users/ckhurana/FESTIM/FESTIM-dev/openfoam/OpenFOAM/shellTubeHX/Fusion-Heat-Exchangers/openfoam/shellTube/case.foam", cell_type=10)
-vel1 = my_reader.create_dolfinx_function(t=5, name="U", subdomain="breeder")
-vel2 = my_reader.create_dolfinx_function(t=5, name="U", subdomain="coolant")
+vel1 = my_reader.create_dolfinx_function(t=100, name="U", subdomain="breeder")
+vel2 = my_reader.create_dolfinx_function(t=100, name="U", subdomain="coolant")
 
 advection_term_breeder = F.AdvectionTerm(
-    velocity=vel1,
+    velocity=lambda t: get_my_U_field(t, "breeder"),
     subdomain=breeder_vol,
     species=H,
 )
 
 advection_term_coolant = F.AdvectionTerm(
-    velocity=vel2,
+    velocity=lambda t: get_my_U_field(t, "coolant"),
     subdomain=coolant_vol,
     species=H,
 )
 
 my_model.exports = [
-    F.VTXSpeciesExport(filename="breeder.bp", field=H, subdomain=breeder_vol),
-    F.VTXSpeciesExport(filename="coolant.bp", field=H, subdomain=coolant_vol),
-    F.VTXSpeciesExport(filename="walls.bp", field=H, subdomain=walls_vol),
+    F.VTXSpeciesExport(filename="results_with_advection/steady_state/breeder.bp", field=H, subdomain=breeder_vol),
+    F.VTXSpeciesExport(filename="results_with_advection/steady_state/coolant.bp", field=H, subdomain=coolant_vol),
+    F.VTXSpeciesExport(filename="results_with_advection/steady_state/walls.bp", field=H, subdomain=walls_vol),
 ]
 
 my_model.advection_terms = [advection_term_breeder, advection_term_coolant]
-my_model.settings = F.Settings(atol=1e-10, rtol=1e-10, transient=False)
+my_model.settings = F.Settings(atol=1e-7, rtol=1e-10, transient=False)
 
-print("Initialising FESTIM model...")
+import dolfinx
+dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
+
 my_model.initialise()
-
-print("Running FESTIM solve...")
-my_model.run()
-
-print("FESTIM run completed.")
+my_model.run() 
