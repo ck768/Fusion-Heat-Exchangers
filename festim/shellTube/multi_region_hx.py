@@ -65,12 +65,6 @@ breeder_outlet = F.SurfaceSubdomain(id=breeder_outlet_marker)
 
 ## Defining solver settings
 solver_options = {
-        "snes_type": "newtonls",
-        "snes_linesearch_type": "none",
-        "snes_atol": 1e-5,
-        "snes_rtol": 1e-10,
-        "snes_max_it": 50,
-        "snes_divergence_tolerance": 1e10,
         "ksp_type": "gmres",
         "pc_type": "hypre",
         "pc_hypre_type": "boomeramg",
@@ -117,21 +111,23 @@ my_model.species = [H]
 my_model.temperature = 400
 
 my_model.boundary_conditions = [
-    F.FixedConcentrationBC(subdomain=breeder_inlet, value=1, species=H),
-    F.FixedConcentrationBC(subdomain=coolant_inlet, value=0, species=H),
+    F.FixedConcentrationBC(subdomain=breeder_inlet, value=0, species=H),
+    F.FixedConcentrationBC(subdomain=coolant_inlet, value=2, species=H),
 ]
 
 vel1 = my_reader.create_dolfinx_function(t=100, name="U", subdomain="breeder")
 vel2 = my_reader.create_dolfinx_function(t=100, name="U", subdomain="coolant")
 
 advection_term_breeder = F.AdvectionTerm(
-    velocity=lambda t: get_my_U_field(t, "breeder"),
+    # velocity=lambda t: get_my_U_field(t, "breeder"),
+    velocity=vel1,
     subdomain=breeder_vol,
     species=H,
 )
 
 advection_term_coolant = F.AdvectionTerm(
-    velocity=lambda t: get_my_U_field(t, "coolant"),
+    # velocity=lambda t: get_my_U_field(t, "coolant"),
+    velocity=vel2,
     subdomain=coolant_vol,
     species=H,
 )
