@@ -9,7 +9,7 @@ gmsh.initialize()
 gmsh.option.setString("Geometry.OCCTargetUnit", "MM")
 gmsh.model.add("hx_openfoam")
 
-cad_file_path = "../hx_w_thickness.brep"
+cad_file_path = "/home/ckhurana/Fusion-Heat-Exchangers/meshing/shellTube/hx_fixed.brep"
 gmsh.merge(cad_file_path)
 gmsh.model.occ.synchronize()
 
@@ -35,19 +35,19 @@ print(f"Number of surfaces: {len(surfaces)}")
 ###############################################################################
 # VOLUME GROUPS  — adjust tags if fragmentation renumbers them
 ###############################################################################
-shell_vols        = [1, 2, 3]
-pipe_vols         = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-baffle_vols       = [14, 15, 16, 17, 18, 19]
-inner_fluid_vols  = [20]
-outer_fluid_vols  = [21]
+shell_vols        = [1]
+pipe_vols         = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+baffle_vols       = [12, 13, 14, 15, 16, 17]
+inner_fluid_vols  = [18]
+outer_fluid_vols  = [19]
 
 ###############################################################################
 # BOUNDARY CONDITION SURFACES  — flat inlet/outlet faces
 ###############################################################################
-inner_inlet  = [273]
-inner_outlet = [275]
-outer_inlet  = [276]
-outer_outlet = [277]
+inner_inlet  = [265]
+inner_outlet = [264]
+outer_inlet  = [267]
+outer_outlet = [266]
 
 ###############################################################################
 # HELPER: find shared surfaces between two lists of volumes
@@ -117,9 +117,9 @@ all_interface_surfs = (
 shell_outer_wall = get_outer_surfaces(shell_vols, all_interface_surfs)
 print(f"  shell outer wall       : {len(shell_outer_wall)} surfaces")
 
-###############################################################################
+##############################################################################
 # PHYSICAL GROUPS — VOLUMES
-###############################################################################
+##############################################################################
 gmsh.model.addPhysicalGroup(3, shell_vols,       tag=1,  name="solid_shell")
 gmsh.model.addPhysicalGroup(3, pipe_vols,        tag=2,  name="solid_pipes")
 gmsh.model.addPhysicalGroup(3, baffle_vols,      tag=3,  name="solid_baffles")
@@ -159,10 +159,11 @@ if shell_outer_wall:
 ###############################################################################
 # MESH SETTINGS
 ###############################################################################
-gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 30)
+gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", 12)
 # gmsh.option.setNumber("Mesh.CharacteristicLengthMax", 1)
 # gmsh.option.setNumber("Mesh.Algorithm3D", 1)   # Delaunay tet
-
+gmsh.option.setNumber("Mesh.MshFileVersion", 2.2)
+gmsh.option.setNumber("Mesh.Binary", 0)
 ###############################################################################
 # GENERATE MESH
 ###############################################################################
@@ -187,12 +188,12 @@ except Exception as e:
 ###############################################################################
 # SAVE
 ###############################################################################
-output_file = "hx_thick_automated_interfaces.msh"
+output_file = "hx_fixed.msh"
 gmsh.write(output_file)
 print(f"Mesh saved to {output_file}")
 
 num_tets = len(gmsh.model.mesh.getElementsByType(4)[0])
 print(f"Total tetrahedra: {num_tets}")
 
-gmsh.fltk.run()
+# gmsh.fltk.run()
 gmsh.finalize()

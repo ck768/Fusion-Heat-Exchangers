@@ -1,0 +1,24 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      physicalProperties;
+}
+thermoType
+{
+    type            heSolidThermo;
+    mixture         pureMixture;
+    transport       constIsoSolid;
+    thermo          eConst;
+    equationOfState rhoConst;
+    specie          specie;
+    energy          sensibleInternalEnergy;
+}
+mixture
+{
+    specie          { molWeight 55.845; }
+    transport       { kappa 50; }
+    thermodynamics  { Cv 500; hf 0; }
+    equationOfState { rho 8000; }
+}
