@@ -8,6 +8,6 @@ FoamFile
 ddtSchemes          { default steadyState; }
 gradSchemes         { default Gauss linear; }
 divSchemes          { default none; }
-laplacianSchemes    { default Gauss linear corrected; }
+laplacianSchemes    { default Gauss linear limited 0.5; }
 interpolationSchemes { default linear; }
-snGradSchemes       { default corrected; }
+snGradSchemes       { default limited 0.5; }

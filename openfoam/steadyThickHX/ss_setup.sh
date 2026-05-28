@@ -132,7 +132,7 @@ regions
 EOF
 
 ###############################################################################
-# system/controlDict — steady state uses large pseudo-timestep
+# system/controlDict
 ###############################################################################
 cat > system/controlDict << 'EOF'
 FoamFile
@@ -146,11 +146,11 @@ application     foamMultiRegion;
 startFrom       startTime;
 startTime       0;
 stopAt          endTime;
-endTime         2000;
+endTime         200;
 deltaT          1;
 adjustTimeStep  no;
 writeControl    timeStep;
-writeInterval   100;
+writeInterval   10;
 purgeWrite      3;
 writeFormat     ascii;
 writePrecision  8;
@@ -174,9 +174,9 @@ FoamFile
 ddtSchemes          { default steadyState; }
 gradSchemes         { default Gauss linear; }
 divSchemes          { default none; }
-laplacianSchemes    { default Gauss linear corrected; }
+laplacianSchemes    { default Gauss linear limited 0.5; }
 interpolationSchemes { default linear; }
-snGradSchemes       { default corrected; }
+snGradSchemes       { default limited 0.5; }
 EOF
 
 cat > system/fvSolution << 'EOF'
@@ -192,11 +192,11 @@ PIMPLE
 {
     nOuterCorrectors        20;
     nCorrectors             2;
-    nNonOrthogonalCorrectors 1;
+    nNonOrthogonalCorrectors 2;
     residualControl
     {
         U       1e-4;
-        p_rgh   1e-6;
+        p_rgh   1e-3;
         h       1e-4;
     }
 }
@@ -204,6 +204,7 @@ EOF
 
 ###############################################################################
 # system/fvSchemes and fvSolution — solids
+# CHANGED: e relaxation 1->0.7, added fieldBounds, nNonOrth 1->2
 ###############################################################################
 mkdir -p system/solid_pipes
 
@@ -218,9 +219,9 @@ FoamFile
 ddtSchemes          { default steadyState; }
 gradSchemes         { default Gauss linear; }
 divSchemes          { default none; }
-laplacianSchemes    { default Gauss linear corrected; }
+laplacianSchemes    { default Gauss linear limited 0.5; }
 interpolationSchemes { default linear; }
-snGradSchemes       { default corrected; }
+snGradSchemes       { default limited 0.5; }
 EOF
 
 cat > system/solid_pipes/fvSolution << 'EOF'
@@ -248,20 +249,29 @@ solvers
 }
 PIMPLE
 {
-    nNonOrthogonalCorrectors 1;
-    residualControl { e 1e-4; }
+    nNonOrthogonalCorrectors 2;
+    residualControl { e 1e-3; }
 }
-relaxationFactors { equations { e 1; } }
+relaxationFactors { equations { e 0.7; } }
+fieldBounds
+{
+    e   1e4  1e8;
+    T   200  2000;
+}
 EOF
 
+# Write individual files for each solid (not symlinks) so fieldBounds applies
 for r in solid_shell solid_baffles; do
     mkdir -p system/$r
-    ln -sf $(pwd)/system/solid_pipes/fvSchemes  system/$r/fvSchemes
-    ln -sf $(pwd)/system/solid_pipes/fvSolution system/$r/fvSolution
+    cp system/solid_pipes/fvSchemes  system/$r/fvSchemes
+    cp system/solid_pipes/fvSolution system/$r/fvSolution
 done
 
 ###############################################################################
-# system/fvSchemes and fvSolution — fluids (steady state)
+# system/fvSchemes and fvSolution — fluids
+# CHANGED: limited 0.5 laplacian, fixedFluxPressure p_rgh BC,
+#          p_rgh residual 1e-6->1e-3, nNonOrth 1->2,
+#          DICGaussSeidel smoother, removed fieldBounds conflict
 ###############################################################################
 for r in fluid_1_tubeside fluid_2_shellside; do
     mkdir -p system/$r
@@ -284,9 +294,9 @@ divSchemes
     div(phi,K)                                  Gauss linear;
     div(((rho*nuEff)*dev2(T(grad(U)))))         Gauss linear;
 }
-laplacianSchemes    { default Gauss linear corrected; }
+laplacianSchemes    { default Gauss linear limited 0.5; }
 interpolationSchemes { default linear; }
-snGradSchemes       { default corrected; }
+snGradSchemes       { default limited 0.5; }
 EOF
 
     cat > system/$r/fvSolution << 'EOF'
@@ -302,7 +312,9 @@ solvers
     p_rgh
     {
         solver          GAMG;
-        smoother        GaussSeidel;
+        smoother        DICGaussSeidel;
+        nPreSweeps      2;
+        nPostSweeps     2;
         tolerance       1e-8;
         relTol          0.01;
     }
@@ -339,24 +351,24 @@ PIMPLE
     momentumPredictor   yes;
     nOuterCorrectors    20;
     nCorrectors         2;
-    nNonOrthogonalCorrectors 1;
+    nNonOrthogonalCorrectors 2;
     residualControl
     {
         U       1e-4;
-        p_rgh   1e-6;
+        p_rgh   1e-3;
         h       1e-4;
     }
 }
 relaxationFactors
 {
-    fields    { p_rgh 0.5; }
-    equations { U 0.7; h 0.9; e 0.9; }
+    fields    { p_rgh 0.3; }
+    equations { U 0.7; h 0.9; }
 }
 fieldBounds
 {
-    p_rgh   1e3  1e8;
-    h       1e4  1e8;
-    T       200  2000;
+    p_rgh   -1e6  1e8;
+    h       1e4   1e8;
+    T       200   2000;
 }
 EOF
 done
@@ -461,6 +473,7 @@ boundaryField
 }
 EOF
 
+# CHANGED: fixedFluxPressure on walls/inlet, uniform 0
 cat > 0/fluid_1_tubeside/p_rgh << 'EOF'
 FoamFile
 {
@@ -470,12 +483,12 @@ FoamFile
     object      p_rgh;
 }
 dimensions      [1 -1 -2 0 0 0 0];
-internalField   uniform 1e5;
+internalField   uniform 0;
 boundaryField
 {
-    bc_inner_inlet  { type zeroGradient; }
-    bc_inner_outlet { type fixedValue; value uniform 1e5; }
-    ".*"            { type zeroGradient; }
+    bc_inner_inlet  { type fixedFluxPressure; value uniform 0; }
+    bc_inner_outlet { type fixedValue; value uniform 0; }
+    ".*"            { type fixedFluxPressure; value uniform 0; }
 }
 EOF
 
@@ -488,7 +501,7 @@ FoamFile
     object      p;
 }
 dimensions      [1 -1 -2 0 0 0 0];
-internalField   uniform 1e5;
+internalField   uniform 0;
 boundaryField
 {
     ".*"    { type zeroGradient; }
@@ -559,6 +572,7 @@ boundaryField
 }
 EOF
 
+# CHANGED: fixedFluxPressure on walls/inlet, uniform 0
 cat > 0/fluid_2_shellside/p_rgh << 'EOF'
 FoamFile
 {
@@ -568,12 +582,12 @@ FoamFile
     object      p_rgh;
 }
 dimensions      [1 -1 -2 0 0 0 0];
-internalField   uniform 1e5;
+internalField   uniform 0;
 boundaryField
 {
-    bc_outer_inlet  { type zeroGradient; }
-    bc_outer_outlet { type fixedValue; value uniform 1e5; }
-    ".*"            { type zeroGradient; }
+    bc_outer_inlet  { type fixedFluxPressure; value uniform 0; }
+    bc_outer_outlet { type fixedValue; value uniform 0; }
+    ".*"            { type fixedFluxPressure; value uniform 0; }
 }
 EOF
 
@@ -586,7 +600,7 @@ FoamFile
     object      p;
 }
 dimensions      [1 -1 -2 0 0 0 0];
-internalField   uniform 1e5;
+internalField   uniform 0;
 boundaryField
 {
     ".*"    { type zeroGradient; }
@@ -615,10 +629,11 @@ echo ""
 echo "Steady-state case setup complete."
 echo "  - ddtSchemes: steadyState"
 echo "  - deltaT=1 (pseudo-timestep), endTime=2000 iterations"
-echo "  - PIMPLE nOuterCorrectors=50 with residualControl 1e-4"
-echo "  - div schemes: upwind (stable for steady state)"
-echo "  - relaxationFactors: p_rgh=0.3, U=0.7, h=0.9"
-echo "  - U internalField initialised to inlet velocity"
+echo "  - PIMPLE nOuterCorrectors=20 with residualControl 1e-3/1e-4"
+echo "  - laplacian: limited 0.5 (more stable on non-orthogonal mesh)"
+echo "  - p_rgh: fixedFluxPressure on walls/inlet, uniform 0"
+echo "  - solid e relaxation: 0.7 with fieldBounds"
+echo "  - DICGaussSeidel smoother for GAMG"
 echo "  - Gravity disabled"
 echo ""
 echo "Workflow:"

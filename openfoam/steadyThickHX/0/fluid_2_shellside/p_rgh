@@ -6,10 +6,10 @@ FoamFile
     object      p_rgh;
 }
 dimensions      [1 -1 -2 0 0 0 0];
-internalField   uniform 1e5;
+internalField   uniform 0;
 boundaryField
 {
-    bc_outer_inlet  { type zeroGradient; }
-    bc_outer_outlet { type fixedValue; value uniform 1e5; }
-    ".*"            { type zeroGradient; }
+    bc_outer_inlet  { type fixedFluxPressure; value uniform 0; }
+    bc_outer_outlet { type fixedValue; value uniform 0; }
+    ".*"            { type fixedFluxPressure; value uniform 0; }
 }

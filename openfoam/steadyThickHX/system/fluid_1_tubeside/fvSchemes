@@ -15,6 +15,6 @@ divSchemes
     div(phi,K)                                  Gauss linear;
     div(((rho*nuEff)*dev2(T(grad(U)))))         Gauss linear;
 }
-laplacianSchemes    { default Gauss linear corrected; }
+laplacianSchemes    { default Gauss linear limited 0.5; }
 interpolationSchemes { default linear; }
-snGradSchemes       { default corrected; }
+snGradSchemes       { default limited 0.5; }

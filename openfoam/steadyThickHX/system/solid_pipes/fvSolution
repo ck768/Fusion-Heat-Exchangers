@@ -22,7 +22,7 @@ solvers
 }
 PIMPLE
 {
-    nNonOrthogonalCorrectors 1;
+    nNonOrthogonalCorrectors 2;
     residualControl { e 1e-3; }
 }
 relaxationFactors { equations { e 0.7; } }

@@ -10,11 +10,11 @@ PIMPLE
 {
     nOuterCorrectors        20;
     nCorrectors             2;
-    nNonOrthogonalCorrectors 1;
+    nNonOrthogonalCorrectors 2;
     residualControl
     {
         U       1e-4;
-        p_rgh   1e-6;
+        p_rgh   1e-3;
         h       1e-4;
     }
 }
