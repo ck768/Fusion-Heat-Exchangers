@@ -2,7 +2,7 @@
 set -e
 
 ###############################################################################
-# physicalProperties — steel for all solid regions
+# physicalProperties — In-718 for all solid regions, at room temp (298K)
 ###############################################################################
 mkdir -p constant/solid_pipes constant/solid_shell constant/solid_baffles
 
@@ -26,10 +26,10 @@ thermoType
 }
 mixture
 {
-    specie          { molWeight 55.845; }
-    transport       { kappa 50; }
-    thermodynamics  { Cv 500; hf 0; }
-    equationOfState { rho 8000; }
+    specie          { molWeight 59.79; }
+    transport       { kappa 9.94; }
+    thermodynamics  { Cv 425; hf 0; }
+    equationOfState { rho 8170; }
 }
 EOF
 
@@ -39,7 +39,7 @@ for r in solid_shell solid_baffles; do
 done
 
 ###############################################################################
-# physicalProperties — water (rhoConst) for fluid regions
+# physicalProperties — flibe (rhoConst) for fluid regions
 ###############################################################################
 for r in fluid_1_tubeside fluid_2_shellside; do
     mkdir -p constant/$r
@@ -63,10 +63,10 @@ thermoType
 }
 mixture
 {
-    specie          { molWeight 18.0; }
-    equationOfState { rho 1000; }
-    thermodynamics  { Cp 4181; Hf 0; }
-    transport       { mu 1e-3; Pr 7.0; }
+    specie          { molWeight 33.02; }
+    equationOfState { rho 1940; }
+    thermodynamics  { Cp 2400; Hf -639890; }
+    transport       { mu 6e-3; Pr 14.4; }
 }
 EOF
 done
@@ -386,14 +386,14 @@ FoamFile
     object      T;
 }
 dimensions      [0 0 0 1 0 0 0];
-internalField   uniform 300;
+internalField   uniform 298;
 boundaryField
 {
     ".*"
     {
         type        coupledTemperature;
         Tnbr        T;
-        value       uniform 300;
+        value       uniform 298;
     }
 }
 EOF
@@ -408,7 +408,7 @@ FoamFile
     object      T;
 }
 dimensions      [0 0 0 1 0 0 0];
-internalField   uniform 300;
+internalField   uniform 298;
 boundaryField
 {
     shell_outer_wall
@@ -419,7 +419,7 @@ boundaryField
     {
         type        coupledTemperature;
         Tnbr        T;
-        value       uniform 300;
+        value       uniform 298;
     }
 }
 EOF
@@ -441,16 +441,16 @@ FoamFile
     object      T;
 }
 dimensions      [0 0 0 1 0 0 0];
-internalField   uniform 300;
+internalField   uniform 298;
 boundaryField
 {
-    bc_inner_inlet  { type fixedValue; value uniform 350; }
+    bc_inner_inlet  { type fixedValue; value uniform 908; }
     bc_inner_outlet { type zeroGradient; }
     ".*"
     {
         type        coupledTemperature;
         Tnbr        T;
-        value       uniform 300;
+        value       uniform 298;
     }
 }
 EOF
@@ -464,10 +464,10 @@ FoamFile
     object      U;
 }
 dimensions      [0 1 -1 0 0 0 0];
-internalField   uniform (0 0 -0.001);
+internalField   uniform (0 0 -2);
 boundaryField
 {
-    bc_inner_inlet  { type fixedValue; value uniform (0 0 -0.001); }
+    bc_inner_inlet  { type fixedValue; value uniform (0 0 -2); }
     bc_inner_outlet { type zeroGradient; }
     ".*"            { type noSlip; }
 }
@@ -508,23 +508,23 @@ boundaryField
 }
 EOF
 
-cat > 0/fluid_1_tubeside/h << 'EOF'
-FoamFile
-{
-    version     2.0;
-    format      ascii;
-    class       volScalarField;
-    object      h;
-}
-dimensions      [0 2 -2 0 0 0 0];
-internalField   uniform 1254300;
-boundaryField
-{
-    bc_inner_inlet  { type fixedValue; value uniform 1463350; }
-    bc_inner_outlet { type zeroGradient; }
-    ".*"            { type zeroGradient; }
-}
-EOF
+# cat > 0/fluid_1_tubeside/h << 'EOF'
+# FoamFile
+# {
+#     version     2.0;
+#     format      ascii;
+#     class       volScalarField;
+#     object      h;
+# }
+# dimensions      [0 2 -2 0 0 0 0];
+# internalField   uniform 1254300;
+# boundaryField
+# {
+#     bc_inner_inlet  { type fixedValue; value uniform 1463350; }
+#     bc_inner_outlet { type zeroGradient; }
+#     ".*"            { type zeroGradient; }
+# }
+# EOF
 
 ###############################################################################
 # 0/ fields — fluid_2_shellside
@@ -540,16 +540,16 @@ FoamFile
     object      T;
 }
 dimensions      [0 0 0 1 0 0 0];
-internalField   uniform 280;
+internalField   uniform 800;
 boundaryField
 {
-    bc_outer_inlet  { type fixedValue; value uniform 280; }
+    bc_outer_inlet  { type fixedValue; value uniform 800; }
     bc_outer_outlet { type zeroGradient; }
     ".*"
     {
         type        coupledTemperature;
         Tnbr        T;
-        value       uniform 280;
+        value       uniform 800;
     }
 }
 EOF
@@ -563,10 +563,10 @@ FoamFile
     object      U;
 }
 dimensions      [0 1 -1 0 0 0 0];
-internalField   uniform (0 -0.001 0);
+internalField   uniform (0 -2 0);
 boundaryField
 {
-    bc_outer_inlet  { type fixedValue; value uniform (0 -0.001 0); }
+    bc_outer_inlet  { type fixedValue; value uniform (0 -2 0); }
     bc_outer_outlet { type zeroGradient; }
     ".*"            { type noSlip; }
 }
@@ -607,23 +607,23 @@ boundaryField
 }
 EOF
 
-cat > 0/fluid_2_shellside/h << 'EOF'
-FoamFile
-{
-    version     2.0;
-    format      ascii;
-    class       volScalarField;
-    object      h;
-}
-dimensions      [0 2 -2 0 0 0 0];
-internalField   uniform 1170680;
-boundaryField
-{
-    bc_outer_inlet  { type fixedValue; value uniform 1170680; }
-    bc_outer_outlet { type zeroGradient; }
-    ".*"            { type zeroGradient; }
-}
-EOF
+# cat > 0/fluid_2_shellside/h << 'EOF'
+# FoamFile
+# {
+#     version     2.0;
+#     format      ascii;
+#     class       volScalarField;
+#     object      h;
+# }
+# dimensions      [0 2 -2 0 0 0 0];
+# internalField   uniform 1170680;
+# boundaryField
+# {
+#     bc_outer_inlet  { type fixedValue; value uniform 1170680; }
+#     bc_outer_outlet { type zeroGradient; }
+#     ".*"            { type zeroGradient; }
+# }
+# EOF
 
 echo ""
 echo "Steady-state case setup complete."
@@ -638,7 +638,7 @@ echo "  - Gravity disabled"
 echo ""
 echo "Workflow:"
 echo "  gmshToFoam hx_thick.msh"
+echo "  transformPoints "scale=(0.001 0.001 0.001)""
 echo "  splitMeshRegions -cellZonesOnly -overwrite"
-echo "  transformPoints (scale all regions to metres)"
-echo "  ./steady_state_setup.sh"
+# echo "  ./steady_state_setup.sh"
 echo "  foamMultiRun 2>&1 | tee log.foamMultiRun"

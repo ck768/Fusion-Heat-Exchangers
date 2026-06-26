@@ -6,10 +6,10 @@ FoamFile
     object      U;
 }
 dimensions      [0 1 -1 0 0 0 0];
-internalField   uniform (0 0 -0.001);
+internalField   uniform (0 0 -2);
 boundaryField
 {
-    bc_inner_inlet  { type fixedValue; value uniform (0 0 -0.001); }
+    bc_inner_inlet  { type fixedValue; value uniform (0 0 -2); }
     bc_inner_outlet { type zeroGradient; }
     ".*"            { type noSlip; }
 }

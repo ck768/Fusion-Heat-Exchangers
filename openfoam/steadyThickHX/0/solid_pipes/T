@@ -6,13 +6,13 @@ FoamFile
     object      T;
 }
 dimensions      [0 0 0 1 0 0 0];
-internalField   uniform 300;
+internalField   uniform 298;
 boundaryField
 {
     ".*"
     {
         type        coupledTemperature;
         Tnbr        T;
-        value       uniform 300;
+        value       uniform 298;
     }
 }

@@ -6,15 +6,15 @@ FoamFile
     object      T;
 }
 dimensions      [0 0 0 1 0 0 0];
-internalField   uniform 280;
+internalField   uniform 800;
 boundaryField
 {
-    bc_outer_inlet  { type fixedValue; value uniform 280; }
+    bc_outer_inlet  { type fixedValue; value uniform 800; }
     bc_outer_outlet { type zeroGradient; }
     ".*"
     {
         type        coupledTemperature;
         Tnbr        T;
-        value       uniform 280;
+        value       uniform 800;
     }
 }
