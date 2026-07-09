@@ -1,0 +1,51 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  13
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    location    "7080/fluid_2_shellside";
+    object      rho;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [1 -3 0 0 0 0 0];
+
+internalField   uniform 1940;
+
+boundaryField
+{
+    bc_outer_outlet
+    {
+        type            calculated;
+        value           uniform 1940;
+    }
+    bc_outer_inlet
+    {
+        type            calculated;
+        value           uniform 1940;
+    }
+    fluid_2_shellside_to_solid_baffles
+    {
+        type            calculated;
+        value           uniform 1940;
+    }
+    fluid_2_shellside_to_solid_shell
+    {
+        type            calculated;
+        value           uniform 1940;
+    }
+    fluid_2_shellside_to_solid_pipes
+    {
+        type            calculated;
+        value           uniform 1940;
+    }
+}
+
+
+// ************************************************************************* //

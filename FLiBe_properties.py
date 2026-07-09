@@ -140,7 +140,7 @@ def plot_reynolds_number_vs_inlet_velocity(
      breeder : str
         Breeder fluid name.
     """
-    inlet_velocities = np.linspace(0, 1e-2, 100000)  # m/s
+    inlet_velocities = np.linspace(0, 2, 100000)  # m/s
     Re_numbers = []
 
     for inlet_velocity in inlet_velocities:  # m/s
@@ -288,7 +288,7 @@ FLiBe_density = 2245 - 0.424 * (
 
 flow_rate = 2 # m/s from 10.1016/j.fusengdes.2018.09.007
 
-inlet_diameter = 0.13  # m from CAD
+inlet_diameter = 0.05  # m from CAD
 
 k_b = F.k_B  # eV/K, boltzmann constant
 
@@ -307,11 +307,12 @@ kinematic_viscosity = calculate_FLiBe_kinematic_viscosity(
 )
 
 Re = calculate_reynolds_number(
-    inlet_velocity, inlet_diameter, kinematic_viscosity, breeder, suppress_print=False
+    inlet_velocity, inlet_diameter, kinematic_viscosity, breeder, suppress_print=True
 )
 
-k = calculate_initial_k(inlet_velocity)
+k = calculate_initial_k(inlet_velocity, suppress_print=False)
 epsilon = calculate_initial_epsilon(k, characteristic_length=inlet_diameter)
+omega = calculate_initial_omega(k, characteristic_length=inlet_diameter, suppress_print=False)
 
 plot_reynolds_number_vs_inlet_velocity(
     inlet_diameter, kinematic_viscosity, breeder_temperature, breeder, inlet_velocity, show=False
@@ -321,4 +322,7 @@ dynamic_viscosity = 6e-3
 specific_heat = 2400
 thermal_conductivity = 1
 
+show_print=False
 prandtl_number = dynamic_viscosity * specific_heat / thermal_conductivity
+if show_print==True:
+    print(f'prandtl number is {prandtl_number}')
