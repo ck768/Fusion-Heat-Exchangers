@@ -13,6 +13,7 @@ from scipy.spatial import cKDTree
 from scifem import assemble_scalar
 import ufl
 from dolfinx.log import set_log_level, LogLevel
+import h_transport_materials as htm
 
 # add openfoam/ to path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -136,36 +137,36 @@ def export_openfoam_data(p, u, T, results_folder):
     writer_T.write(t=0)
 
 
-def build_festim_model(results_folder):
+def build_festim_model(openfoam_folder, results_folder):
 
     ## coolant fields
     p_coolant, u_coolant, T_coolant, openfoam_mesh, nut_coolant, facet_meshtags, volume_meshtags = (
         read_openfoam_data(
-            parent_dir+"/openfoam/turbulentHX/hx.foam", subdomain="fluid_2_shellside"
+            parent_dir+openfoam_folder, subdomain="fluid_2_shellside"
         )
     )
 
     ## breeder fields
     p_breeder, u_breeder, T_breeder, _, nut_breeder, _, _ = (
         read_openfoam_data(
-            parent_dir+"/openfoam/turbulentHX/hx.foam", subdomain="fluid_1_tubeside"
+            parent_dir+openfoam_folder, subdomain="fluid_1_tubeside"
         )
     )
 
     ## solid fields 
     p, u, T_baffles, _, _, _, _ = (
         read_openfoam_data(
-            parent_dir+"/openfoam/turbulentHX/hx.foam", subdomain="solid_baffles"
+            parent_dir+openfoam_folder, subdomain="solid_baffles"
         )
     )
     p, u, T_pipes, _, _, _, _ = (
         read_openfoam_data(
-            parent_dir+"/openfoam/turbulentHX/hx.foam", subdomain="solid_pipes"
+            parent_dir+openfoam_folder, subdomain="solid_pipes"
         )
     )
     p, u, T_shell, _, _, _, _ = (
         read_openfoam_data(
-            parent_dir+"/openfoam/turbulentHX/hx.foam", subdomain="solid_shell"
+            parent_dir+openfoam_folder, subdomain="solid_shell"
         )
     )
 
@@ -177,8 +178,83 @@ def build_festim_model(results_folder):
     my_model.volume_meshtags = volume_meshtags
 
     ## Defining material properties
-    breeder_mat = F.Material(D_0=1e-3, E_D=0, K_S_0=10, E_K_S=0)
-    coolant_mat = F.Material(D_0=1e-3, E_D=0, K_S_0=10, E_K_S=0)
+
+    # flibe
+    flibe_diffusivity = (
+        htm.diffusivities.filter(material=htm.FLIBE)
+        .filter(exclude=True, isotope="H")
+        .filter(exclude=True, isotope="D")
+        .mean()
+    )
+
+    D_0_flibe = flibe_diffusivity.pre_exp.magnitude  # m2/s,
+    E_D_flibe = flibe_diffusivity.act_energy.magnitude  # eV
+
+    # use inlet temps
+    def D_fluid(T):
+        return D_0_flibe * ufl.exp(-E_D_flibe / (F.k_B * T))
+
+    # turbulent viscosity interpolation
+    # entities_breeder = volume_meshtags.find(1)   
+    # new_breeder_mesh, _, _, _ = create_submesh(my_model.mesh.mesh, dim=3, entities=entities_breeder)
+    # V_breeder_festim = fem.functionspace(new_breeder_mesh, ("CG", 1))
+    
+    # V_breeder = fem.functionspace(openfoam_mesh, ("CG", 1))
+    # nut_breeder_from_openfoam = dolfinx.fem.Function(V_breeder)
+    # nut_breeder_from_openfoam.interpolate(nut_breeder)
+    # nut_festim = dolfinx.fem.Function(V_breeder_festim)
+
+    # nmm_interpolate(f_out=nut_festim, f_in=nut_breeder_from_openfoam)
+
+    
+
+    # interpolate OpenFOAM nut field onto FESTIM mesh
+    # festim_cells = my_model.volume_meshtags.find(1)  # breeder cells to interpolate to
+    # N_openfoam = fem.functionspace(openfoam_mesh, ("CG", 1))
+    # N_festim = fem.functionspace(openfoam_mesh, ("CG", 1))
+
+    # nut_openfoam = fem.Function(N_openfoam)
+    # nut_openfoam.interpolate(nut_breeder)
+    # festim_nut = fem.Function(N_festim)
+
+    # interpolation_data = fem.create_interpolation_data(
+    #     V_to=N_festim, V_from=N_openfoam, cells=festim_cells
+    # )
+
+    # festim_nut.interpolate_nonmatching(
+    #     nut_openfoam, cells=festim_cells, interpolation_data=interpolation_data
+    # )
+
+    # nut_field_array = nut_festim.x.array
+    # nut_field_array[nut_field_array < 0.0] = 0.0  # ensure no negative eddy viscosity
+    # nut_festim.x.array[:] = nut_field_array
+
+    # # add turbulent diffusion term
+    # Sc = 0.7
+    # D_turb = nut_festim / Sc
+
+    # inlet_breeder_temp = 908
+
+    # V = fem.functionspace(openfoam_mesh, ("CG", 1))
+    # D_flibe = fem.Function(V)
+    # D_flibe.interpolate(fem.Expression(D_fluid(inlet_breeder_temp) + D_turb, V.element.interpolation_points))
+
+    inlet_coolant_temp = 800
+
+    flibe_solubility = (
+        htm.solubilities.filter(material=htm.FLIBE)
+        .filter(exclude=True, isotope="H")
+        .filter(exclude=True, isotope="D")
+        .mean()
+    )
+
+    breeder_mat = F.Material(
+        D_0=D_0_flibe, 
+        E_D=E_D_flibe, 
+        K_S_0=flibe_solubility.pre_exp.magnitude, 
+        E_K_S=flibe_solubility.act_energy.magnitude)
+    
+    coolant_mat = F.Material(D_0=D_0_flibe, E_D=E_D_flibe, K_S_0=flibe_solubility.pre_exp.magnitude, E_K_S=flibe_solubility.act_energy.magnitude)
     wall_mat = F.Material(D_0=1e-4, E_D=0, K_S_0=5, E_K_S=0)
 
     ## Defining subdomains and boundary markers from boundary summary
@@ -325,7 +401,7 @@ def build_festim_model(results_folder):
 
 if __name__ == "__main__":
 
-    my_model = build_festim_model(results_folder="hx_results")
+    my_model = build_festim_model(openfoam_folder="/openfoam/turbulentHX_nonconstantrho/hx.foam",results_folder="hx_results")
 
     dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
 
