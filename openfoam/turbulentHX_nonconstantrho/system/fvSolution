@@ -1,0 +1,33 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSolution;
+}
+solvers {}
+PIMPLE
+{
+    nOuterCorrectors        20;
+    nCorrectors             2;
+    nNonOrthogonalCorrectors 2;
+    residualControl
+    {
+        U       1e-4;
+        p_rgh   1e-3;
+        h       1e-4;
+    }
+}
+// relaxationFactors
+// {
+//     fields
+//     {
+//         p_rgh   0.3;
+//     }
+//     equations
+//     {
+//         U       0.7;
+//         h       0.7;
+//         "(k|epsilon|omega).*" 0.7;
+//     }
+// }

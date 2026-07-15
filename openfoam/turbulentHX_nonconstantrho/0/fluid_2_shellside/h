@@ -1,0 +1,15 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      h;
+}
+dimensions      [0 2 -2 0 0 0 0];
+internalField   uniform 1170680;
+boundaryField
+{
+    bc_outer_inlet  { type fixedValue; value uniform 1170680; }
+    bc_outer_outlet { type zeroGradient; }
+    ".*"            { type zeroGradient; }
+}
