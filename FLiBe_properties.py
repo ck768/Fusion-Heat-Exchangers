@@ -11,6 +11,7 @@ def calculate_inlet_velocity(
     inlet_diameter,
     breeder_density,
     breeder,
+    volumetric=False,
     suppress_print=True,
 ):
     """Calculate the inlet velocity of fluid breeder at a given flow rate, inlet diameter, breeder density, and temperature.
@@ -26,6 +27,10 @@ def calculate_inlet_velocity(
         Breeder fluid density in kg/m3.
     breeder : str
         Breeder fluid name.
+    volumetric : bool
+        True if flow rate is volumetric. False if flow rate is mass flow rate.
+    suppress_print : bool
+        Supresses print output when True.
 
     Returns
     -------
@@ -35,7 +40,10 @@ def calculate_inlet_velocity(
 
     inlet_area = np.pi * (inlet_diameter / 2) ** 2  # m^2
 
-    inlet_velocity = flow_rate * breeder_density ** (-1) * inlet_area ** (-1)  # m/s
+    if volumetric:
+        inlet_velocity = flow_rate / inlet_area
+    else:
+        inlet_velocity = flow_rate * breeder_density ** (-1) * inlet_area ** (-1)  # m/s
     if not suppress_print:
         print(
             f"Inlet velocity for {breeder} flow rate of {flow_rate}kg/s is {inlet_velocity}m/s."
@@ -286,9 +294,11 @@ FLiBe_density = 2245 - 0.424 * (
     breeder_temperature - 273.15
 )  # kg/m3 ; equation from Vidrio 2022
 
-flow_rate = 2 # m/s from 10.1016/j.fusengdes.2018.09.007
+print(FLiBe_density)
 
-inlet_diameter = 0.05  # m from CAD
+flow_rate = 2.5 / 3600 # m3/h -> to m3/s from https://www.sciencedirect.com/science/article/pii/S1359431116303738
+
+inlet_diameter = 0.03 # m from CAD
 
 k_b = F.k_B  # eV/K, boltzmann constant
 
@@ -299,7 +309,7 @@ D_0 = flibe_diffusivity.pre_exp.magnitude  # m2/s
 FLiBe_diffusivity = D_0 * np.exp(-E_D / (k_b * breeder_temperature))  # m2/s
 
 inlet_velocity = calculate_inlet_velocity(
-    flow_rate, inlet_diameter, FLiBe_density, breeder
+    flow_rate, inlet_diameter, FLiBe_density, breeder, volumetric=False
 )
 
 kinematic_viscosity = calculate_FLiBe_kinematic_viscosity(
@@ -307,7 +317,7 @@ kinematic_viscosity = calculate_FLiBe_kinematic_viscosity(
 )
 
 Re = calculate_reynolds_number(
-    inlet_velocity, inlet_diameter, kinematic_viscosity, breeder, suppress_print=True
+    inlet_velocity, inlet_diameter, kinematic_viscosity, breeder, suppress_print=False
 )
 
 k = calculate_initial_k(inlet_velocity, suppress_print=False)
@@ -315,7 +325,7 @@ epsilon = calculate_initial_epsilon(k, characteristic_length=inlet_diameter)
 omega = calculate_initial_omega(k, characteristic_length=inlet_diameter, suppress_print=False)
 
 plot_reynolds_number_vs_inlet_velocity(
-    inlet_diameter, kinematic_viscosity, breeder_temperature, breeder, inlet_velocity, show=False
+    inlet_diameter, kinematic_viscosity, breeder_temperature, breeder, inlet_velocity, show=True
 )
 
 dynamic_viscosity = 6e-3 
