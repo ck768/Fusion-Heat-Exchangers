@@ -82,7 +82,6 @@ def calculate_reynolds_number(
     reynolds_number = (inlet_velocity * characteristic_length) / kinematic_viscosity
 
     if not suppress_print:
-
         print(f"Reynolds number for {breeder} is {reynolds_number}.")
 
         if reynolds_number > 3500:
@@ -120,7 +119,6 @@ def calculate_schmidt_number(
     schmidt_number = kinematic_viscosity / diffusivity
 
     if not suppress_print:
-
         print(f"Schmidt number for {breeder} is {schmidt_number}.")
 
     return schmidt_number
@@ -195,7 +193,7 @@ def calculate_initial_k(inlet_velocity, suppress_print=True):
     # assume initial turbulence is isotropic so that U'2_x = U'2_y = U'2_z
     k = (3 / 2) * (0.05 * inlet_velocity) ** 2  # 5% of inlet velocity
 
-    if not suppress_print: 
+    if not suppress_print:
         print(f"Initial turbulence kinetic energy for FLiBe: {k} m2/s2")
 
     return k
@@ -216,12 +214,10 @@ def calculate_initial_epsilon(k, characteristic_length, suppress_print=True):
     float
         Initial turbulence dissipation rate in m2/s3.
     """
-    
-    
 
     epsilon = 0.09 ** (3 / 4) * k ** (3 / 2) / characteristic_length
 
-    if not suppress_print: 
+    if not suppress_print:
         print(f"Initial turbulence dissipation rate for FLiBe: {epsilon} m2/s3")
 
     return epsilon
@@ -245,7 +241,7 @@ def calculate_initial_omega(k, characteristic_length, suppress_print=True):
 
     omega = np.sqrt(k) / (0.09 ** (1 / 4) * characteristic_length)
 
-    if not suppress_print: 
+    if not suppress_print:
         print(f"Initial specific dissipation rate for FLiBe: {omega} m2/s3")
     return omega
 
@@ -296,7 +292,7 @@ FLiBe_density = 2245 - 0.424 * (
 
 print(FLiBe_density)
 
-flow_rate = 2.5 / 3600 # m3/h -> to m3/s from https://www.sciencedirect.com/science/article/pii/S1359431116303738
+flow_rate = 1.5 / 3600 # m3/h -> to m3/s from https://www.sciencedirect.com/science/article/pii/S1359431116303738
 
 inlet_diameter = 0.03 # m from CAD
 
@@ -309,8 +305,9 @@ D_0 = flibe_diffusivity.pre_exp.magnitude  # m2/s
 FLiBe_diffusivity = D_0 * np.exp(-E_D / (k_b * breeder_temperature))  # m2/s
 
 inlet_velocity = calculate_inlet_velocity(
-    flow_rate, inlet_diameter, FLiBe_density, breeder, volumetric=False
+    flow_rate, inlet_diameter, FLiBe_density, breeder, volumetric=True
 )
+print(inlet_velocity)
 
 kinematic_viscosity = calculate_FLiBe_kinematic_viscosity(
     breeder_temperature, FLiBe_density, breeder
@@ -322,17 +319,19 @@ Re = calculate_reynolds_number(
 
 k = calculate_initial_k(inlet_velocity, suppress_print=False)
 epsilon = calculate_initial_epsilon(k, characteristic_length=inlet_diameter)
-omega = calculate_initial_omega(k, characteristic_length=inlet_diameter, suppress_print=False)
-
-plot_reynolds_number_vs_inlet_velocity(
-    inlet_diameter, kinematic_viscosity, breeder_temperature, breeder, inlet_velocity, show=True
+omega = calculate_initial_omega(
+    k, characteristic_length=inlet_diameter, suppress_print=False
 )
 
-dynamic_viscosity = 6e-3 
+plot_reynolds_number_vs_inlet_velocity(
+    inlet_diameter, kinematic_viscosity, breeder_temperature, breeder, inlet_velocity, show=False
+)
+
+dynamic_viscosity = 6e-3
 specific_heat = 2400
 thermal_conductivity = 1
 
-show_print=False
+show_print = False
 prandtl_number = dynamic_viscosity * specific_heat / thermal_conductivity
-if show_print==True:
-    print(f'prandtl number is {prandtl_number}')
+if show_print == True:
+    print(f"prandtl number is {prandtl_number}")

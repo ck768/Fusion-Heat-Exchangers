@@ -3,31 +3,31 @@ import cadquery as cq
 ###############################################################################
 # PARAMETERS
 ###############################################################################
-R                    = 50
-H                    = 500
-fillet_r             = 30
-shell_thickness      = 5
+R = 50
+H = 500
+fillet_r = 30
+shell_thickness = 5
 
-inner_fluid_r        = 30
-inner_fluid_depth    = 50
+inner_fluid_r = 30
+inner_fluid_depth = 50
 
-outer_fluid_r        = 15
-outer_fluid_depth    = 100
-outer_fluid_inlet_z  = H * 0.8
+outer_fluid_r = 15
+outer_fluid_depth = 100
+outer_fluid_inlet_z = H * 0.8
 outer_fluid_outlet_z = H * 0.2
 
-baffle_radius        = R
-baffle_thickness     = 10
-baffle_start         = fillet_r + H / 20
-baffle_end           = H - H / 20 - fillet_r
+baffle_radius = R
+baffle_thickness = 10
+baffle_start = fillet_r + H / 20
+baffle_end = H - H / 20 - fillet_r
 
-hole_diameter        = 15
-col_spacing          = baffle_radius / 2
-row_spacing          = baffle_radius / 2
-holes_per_row        = [3, 4, 3]
+hole_diameter = 15
+col_spacing = baffle_radius / 2
+row_spacing = baffle_radius / 2
+holes_per_row = [3, 4, 3]
 
-num_semi_baffles     = 4
-pipe_wall            = 1
+num_semi_baffles = 4
+pipe_wall = 1
 
 full_side_nozzle_length = R + shell_thickness + outer_fluid_depth
 full_axial_nozzle_length = H + 2 * inner_fluid_depth  # spans entire body + both nozzles
@@ -35,6 +35,7 @@ full_axial_nozzle_length = H + 2 * inner_fluid_depth  # spans entire body + both
 ###############################################################################
 # HELPERS
 ###############################################################################
+
 
 def generate_hole_positions(holes_per_row, col_spacing, row_spacing):
     holes = []
@@ -47,6 +48,7 @@ def generate_hole_positions(holes_per_row, col_spacing, row_spacing):
             holes.append((x, y))
     return holes
 
+
 ###############################################################################
 # 1.  MAIN SHELL BODY  (filleted outer minus filleted inner)
 ###############################################################################
@@ -54,16 +56,20 @@ outer_cyl = (
     cq.Workplane("front")
     .circle(R + shell_thickness)
     .extrude(H)
-    .edges("front").fillet(fillet_r)
-    .edges("back").fillet(fillet_r)
+    .edges("front")
+    .fillet(fillet_r)
+    .edges("back")
+    .fillet(fillet_r)
 )
 
 inner_bore = (
     cq.Workplane("front")
     .circle(R)
     .extrude(H)
-    .edges("front").fillet(fillet_r)
-    .edges("back").fillet(fillet_r)
+    .edges("front")
+    .fillet(fillet_r)
+    .edges("back")
+    .fillet(fillet_r)
 )
 
 shell_main = outer_cyl.cut(inner_bore)
@@ -121,14 +127,12 @@ axial_top_shell_full = (
     .cut(axial_top_bore_full)
 )
 
-axial_top_bore_trimmed  = axial_top_bore_full.cut(inner_bore)
+axial_top_bore_trimmed = axial_top_bore_full.cut(inner_bore)
 axial_top_shell_trimmed = axial_top_shell_full.cut(outer_cyl)
 
 # e) fuse into main shell
-shell_with_axial_nozzles = (
-    shell_main
-    .union(axial_bot_shell_trimmed)
-    .union(axial_top_shell_trimmed)
+shell_with_axial_nozzles = shell_main.union(axial_bot_shell_trimmed).union(
+    axial_top_shell_trimmed
 )
 
 ###############################################################################
@@ -150,7 +154,7 @@ inlet_shell_full = (
     .extrude(full_side_nozzle_length)
     .cut(inlet_bore_full)
 )
-inlet_bore_trimmed  = inlet_bore_full.cut(inner_bore)
+inlet_bore_trimmed = inlet_bore_full.cut(inner_bore)
 inlet_shell_trimmed = inlet_shell_full.cut(outer_cyl)
 
 # outlet (-Y)
@@ -167,29 +171,27 @@ outlet_shell_full = (
     .extrude(-full_side_nozzle_length)
     .cut(outlet_bore_full)
 )
-outlet_bore_trimmed  = outlet_bore_full.cut(inner_bore)
+outlet_bore_trimmed = outlet_bore_full.cut(inner_bore)
 outlet_shell_trimmed = outlet_shell_full.cut(outer_cyl)
 
 # fuse all nozzle shells into one solid shell
-solid_shell = (
-    shell_with_axial_nozzles
-    .union(inlet_shell_trimmed)
-    .union(outlet_shell_trimmed)
+solid_shell = shell_with_axial_nozzles.union(inlet_shell_trimmed).union(
+    outlet_shell_trimmed
 )
 
 ###############################################################################
 # 4.  TUBE BUNDLE
 ###############################################################################
 holes = generate_hole_positions(holes_per_row, col_spacing, row_spacing)
-dz    = baffle_end - baffle_start + baffle_thickness
+dz = baffle_end - baffle_start + baffle_thickness
 
-tube_wall_parts  = []
-tube_bore_parts  = []
+tube_wall_parts = []
+tube_bore_parts = []
 tube_solid_parts = []
 
-for (x, y) in holes:
+for x, y in holes:
     r_out = hole_diameter / 2
-    r_in  = r_out - pipe_wall
+    r_in = r_out - pipe_wall
     tube_solid = (
         cq.Workplane("front")
         .workplane(offset=baffle_start)
@@ -216,6 +218,7 @@ pipes_for_cut = tube_solid_parts[0]
 for t in tube_solid_parts[1:]:
     pipes_for_cut = pipes_for_cut.union(t)
 
+
 ###############################################################################
 # 5.  BAFFLES
 ###############################################################################
@@ -227,6 +230,7 @@ def make_baffle_disc(z_pos):
         .extrude(baffle_thickness)
         .cut(pipes_for_cut)
     )
+
 
 def make_semi_baffle(index, z_pos):
     disc = (
@@ -252,6 +256,7 @@ def make_semi_baffle(index, z_pos):
             .translate((0, -baffle_radius / 2, 0))
         )
     return disc.intersect(cut_box).cut(pipes_for_cut)
+
 
 baffle1 = make_baffle_disc(baffle_start)
 baffle2 = make_baffle_disc(baffle_end)
@@ -290,8 +295,7 @@ for t in tube_bore_parts[1:]:
     fluid1_tubes = fluid1_tubes.union(t)
 
 fluid_1 = (
-    plenum_bot
-    .union(plenum_top)
+    plenum_bot.union(plenum_top)
     .union(fluid1_tubes)
     .union(axial_bot_bore_trimmed)
     .union(axial_top_bore_trimmed)
@@ -302,8 +306,7 @@ fluid_1 = (
 #     annular space + side nozzle bores (trimmed)
 ###############################################################################
 fluid_2 = (
-    interior
-    .cut(plenum_bot)
+    interior.cut(plenum_bot)
     .cut(plenum_top)
     .cut(solid_baffles)
     .cut(pipes_for_cut)
@@ -313,22 +316,24 @@ fluid_2 = (
 
 solid_shell = solid_shell.cut(fluid_1).cut(fluid_2)
 hx = cq.Assembly()
-hx.add(solid_shell,   name="solid_shell",   color=cq.Color("gray"))
-hx.add(solid_pipes,   name="solid_pipes",   color=cq.Color("blue"))
+hx.add(solid_shell, name="solid_shell", color=cq.Color("gray"))
+hx.add(solid_pipes, name="solid_pipes", color=cq.Color("blue"))
 hx.add(solid_baffles, name="solid_baffles", color=cq.Color("red"))
-hx.add(fluid_1,       name="fluid_1",       color=cq.Color("cyan",  alpha=0.4))
-hx.add(fluid_2,       name="fluid_2",       color=cq.Color("green", alpha=0.4))
+hx.add(fluid_1, name="fluid_1", color=cq.Color("cyan", alpha=0.4))
+hx.add(fluid_2, name="fluid_2", color=cq.Color("green", alpha=0.4))
 
 ###############################################################################
 # 8.  EXPORT
 ###############################################################################
 
-full_geometry = cq.Compound.makeCompound([
-    solid_shell.val(),
-    solid_pipes.val(),
-    solid_baffles.val(),
-    fluid_1.val(),
-    fluid_2.val()
-])
+full_geometry = cq.Compound.makeCompound(
+    [
+        solid_shell.val(),
+        solid_pipes.val(),
+        solid_baffles.val(),
+        fluid_1.val(),
+        fluid_2.val(),
+    ]
+)
 
 cq.exporters.export(full_geometry, "hx_fixed.brep")

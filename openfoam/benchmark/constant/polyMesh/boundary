@@ -1,0 +1,105 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  13
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       polyBoundaryMesh;
+    location    "constant/polyMesh";
+    object      boundary;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+12
+(
+    iface_pipes_innerfluid
+    {
+        type            patch;
+        physicalType    patch;
+        nFaces          0;
+        startFace       632437;
+    }
+    iface_baffles_outerfluid
+    {
+        type            patch;
+        physicalType    patch;
+        nFaces          0;
+        startFace       632437;
+    }
+    iface_pipes_baffles
+    {
+        type            patch;
+        physicalType    patch;
+        nFaces          0;
+        startFace       632437;
+    }
+    iface_pipes_outerfluid
+    {
+        type            patch;
+        physicalType    patch;
+        nFaces          0;
+        startFace       632437;
+    }
+    shell_outer_wall
+    {
+        type            patch;
+        physicalType    patch;
+        nFaces          2466;
+        startFace       632437;
+    }
+    iface_shell_outerfluid
+    {
+        type            patch;
+        physicalType    patch;
+        nFaces          0;
+        startFace       634903;
+    }
+    iface_shell_innerfluid
+    {
+        type            patch;
+        physicalType    patch;
+        nFaces          0;
+        startFace       634903;
+    }
+    iface_shell_baffles
+    {
+        type            patch;
+        physicalType    patch;
+        nFaces          0;
+        startFace       634903;
+    }
+    bc_inner_outlet
+    {
+        type            patch;
+        physicalType    patch;
+        nFaces          36;
+        startFace       634903;
+    }
+    bc_inner_inlet
+    {
+        type            patch;
+        physicalType    patch;
+        nFaces          36;
+        startFace       634939;
+    }
+    bc_outer_outlet
+    {
+        type            patch;
+        physicalType    patch;
+        nFaces          34;
+        startFace       634975;
+    }
+    bc_outer_inlet
+    {
+        type            patch;
+        physicalType    patch;
+        nFaces          34;
+        startFace       635009;
+    }
+)
+
+// ************************************************************************* //

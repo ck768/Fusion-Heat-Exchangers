@@ -35,19 +35,20 @@ print(f"Number of surfaces: {len(surfaces)}")
 ###############################################################################
 # VOLUME GROUPS  — adjust tags if fragmentation renumbers them
 ###############################################################################
-shell_vols        = [1]
-pipe_vols         = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-baffle_vols       = [12, 13, 14, 15, 16, 17]
-inner_fluid_vols  = [18]
-outer_fluid_vols  = [19]
+shell_vols = [1]
+pipe_vols = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+baffle_vols = [12, 13, 14, 15, 16, 17]
+inner_fluid_vols = [18]
+outer_fluid_vols = [19]
 
 ###############################################################################
 # BOUNDARY CONDITION SURFACES  — flat inlet/outlet faces
 ###############################################################################
-inner_inlet  = [265]
+inner_inlet = [265]
 inner_outlet = [264]
-outer_inlet  = [267]
+outer_inlet = [267]
 outer_outlet = [266]
+
 
 ###############################################################################
 # HELPER: find shared surfaces between two lists of volumes
@@ -57,6 +58,7 @@ def get_interface_surfaces(vol_tags_a, vol_tags_b):
     Returns surface tags that bound BOTH a volume in group A
     and a volume in group B — i.e. the shared interface.
     """
+
     def surfaces_of(vol_tags):
         surfs = set()
         for tag in vol_tags:
@@ -67,7 +69,8 @@ def get_interface_surfaces(vol_tags_a, vol_tags_b):
 
     surfs_a = surfaces_of(vol_tags_a)
     surfs_b = surfaces_of(vol_tags_b)
-    return list(surfs_a & surfs_b)   # intersection = shared faces
+    return list(surfs_a & surfs_b)  # intersection = shared faces
+
 
 def get_outer_surfaces(vol_tags, exclude_surfaces):
     """
@@ -80,22 +83,23 @@ def get_outer_surfaces(vol_tags, exclude_surfaces):
         all_surfs.update(abs(b[1]) for b in bounds)
     return list(all_surfs - set(exclude_surfaces))
 
+
 ###############################################################################
 # COMPUTE INTERFACES
 ###############################################################################
 print("Computing interfaces...")
 
 # fluid-solid interfaces
-iface_shell_outer_fluid  = get_interface_surfaces(shell_vols,   outer_fluid_vols)
-iface_shell_inner_fluid  = get_interface_surfaces(shell_vols,   inner_fluid_vols)
-iface_pipes_inner_fluid  = get_interface_surfaces(pipe_vols,    inner_fluid_vols)
-iface_pipes_outer_fluid  = get_interface_surfaces(pipe_vols,    outer_fluid_vols)
+iface_shell_outer_fluid = get_interface_surfaces(shell_vols, outer_fluid_vols)
+iface_shell_inner_fluid = get_interface_surfaces(shell_vols, inner_fluid_vols)
+iface_pipes_inner_fluid = get_interface_surfaces(pipe_vols, inner_fluid_vols)
+iface_pipes_outer_fluid = get_interface_surfaces(pipe_vols, outer_fluid_vols)
 iface_baffles_outer_fluid = get_interface_surfaces(baffle_vols, outer_fluid_vols)
 
 # solid-solid interfaces
-iface_shell_pipes        = get_interface_surfaces(shell_vols,   pipe_vols)
-iface_shell_baffles      = get_interface_surfaces(shell_vols,   baffle_vols)
-iface_pipes_baffles      = get_interface_surfaces(pipe_vols,    baffle_vols)
+iface_shell_pipes = get_interface_surfaces(shell_vols, pipe_vols)
+iface_shell_baffles = get_interface_surfaces(shell_vols, baffle_vols)
+iface_pipes_baffles = get_interface_surfaces(pipe_vols, baffle_vols)
 
 print(f"  shell  <-> outer_fluid : {len(iface_shell_outer_fluid)} surfaces")
 print(f"  shell  <-> inner_fluid : {len(iface_shell_inner_fluid)} surfaces")
@@ -108,11 +112,18 @@ print(f"  pipes  <-> baffles     : {len(iface_pipes_baffles)} surfaces")
 
 # outer shell wall (external surface — not shared with any fluid)
 all_interface_surfs = (
-    iface_shell_outer_fluid + iface_shell_inner_fluid +
-    iface_pipes_inner_fluid + iface_pipes_outer_fluid +
-    iface_baffles_outer_fluid +
-    iface_shell_pipes + iface_shell_baffles + iface_pipes_baffles +
-    inner_inlet + inner_outlet + outer_inlet + outer_outlet
+    iface_shell_outer_fluid
+    + iface_shell_inner_fluid
+    + iface_pipes_inner_fluid
+    + iface_pipes_outer_fluid
+    + iface_baffles_outer_fluid
+    + iface_shell_pipes
+    + iface_shell_baffles
+    + iface_pipes_baffles
+    + inner_inlet
+    + inner_outlet
+    + outer_inlet
+    + outer_outlet
 )
 shell_outer_wall = get_outer_surfaces(shell_vols, all_interface_surfs)
 print(f"  shell outer wall       : {len(shell_outer_wall)} surfaces")
@@ -120,41 +131,55 @@ print(f"  shell outer wall       : {len(shell_outer_wall)} surfaces")
 ##############################################################################
 # PHYSICAL GROUPS — VOLUMES
 ##############################################################################
-gmsh.model.addPhysicalGroup(3, shell_vols,       tag=1,  name="solid_shell")
-gmsh.model.addPhysicalGroup(3, pipe_vols,        tag=2,  name="solid_pipes")
-gmsh.model.addPhysicalGroup(3, baffle_vols,      tag=3,  name="solid_baffles")
-gmsh.model.addPhysicalGroup(3, inner_fluid_vols, tag=4,  name="fluid_1_tubeside")
-gmsh.model.addPhysicalGroup(3, outer_fluid_vols, tag=5,  name="fluid_2_shellside")
+gmsh.model.addPhysicalGroup(3, shell_vols, tag=1, name="solid_shell")
+gmsh.model.addPhysicalGroup(3, pipe_vols, tag=2, name="solid_pipes")
+gmsh.model.addPhysicalGroup(3, baffle_vols, tag=3, name="solid_baffles")
+gmsh.model.addPhysicalGroup(3, inner_fluid_vols, tag=4, name="fluid_1_tubeside")
+gmsh.model.addPhysicalGroup(3, outer_fluid_vols, tag=5, name="fluid_2_shellside")
 
 ###############################################################################
 # PHYSICAL GROUPS — BOUNDARY CONDITIONS
 ###############################################################################
-gmsh.model.addPhysicalGroup(2, inner_inlet,  tag=10, name="bc_inner_inlet")
+gmsh.model.addPhysicalGroup(2, inner_inlet, tag=10, name="bc_inner_inlet")
 gmsh.model.addPhysicalGroup(2, inner_outlet, tag=11, name="bc_inner_outlet")
-gmsh.model.addPhysicalGroup(2, outer_inlet,  tag=12, name="bc_outer_inlet")
+gmsh.model.addPhysicalGroup(2, outer_inlet, tag=12, name="bc_outer_inlet")
 gmsh.model.addPhysicalGroup(2, outer_outlet, tag=13, name="bc_outer_outlet")
 
 ###############################################################################
 # PHYSICAL GROUPS — INTERFACES
 ###############################################################################
 if iface_shell_outer_fluid:
-    gmsh.model.addPhysicalGroup(2, iface_shell_outer_fluid,   tag=20, name="iface_shell_outerfluid")
+    gmsh.model.addPhysicalGroup(
+        2, iface_shell_outer_fluid, tag=20, name="iface_shell_outerfluid"
+    )
 if iface_shell_inner_fluid:
-    gmsh.model.addPhysicalGroup(2, iface_shell_inner_fluid,   tag=21, name="iface_shell_innerfluid")
+    gmsh.model.addPhysicalGroup(
+        2, iface_shell_inner_fluid, tag=21, name="iface_shell_innerfluid"
+    )
 if iface_pipes_inner_fluid:
-    gmsh.model.addPhysicalGroup(2, iface_pipes_inner_fluid,   tag=22, name="iface_pipes_innerfluid")
+    gmsh.model.addPhysicalGroup(
+        2, iface_pipes_inner_fluid, tag=22, name="iface_pipes_innerfluid"
+    )
 if iface_pipes_outer_fluid:
-    gmsh.model.addPhysicalGroup(2, iface_pipes_outer_fluid,   tag=23, name="iface_pipes_outerfluid")
+    gmsh.model.addPhysicalGroup(
+        2, iface_pipes_outer_fluid, tag=23, name="iface_pipes_outerfluid"
+    )
 if iface_baffles_outer_fluid:
-    gmsh.model.addPhysicalGroup(2, iface_baffles_outer_fluid, tag=24, name="iface_baffles_outerfluid")
+    gmsh.model.addPhysicalGroup(
+        2, iface_baffles_outer_fluid, tag=24, name="iface_baffles_outerfluid"
+    )
 if iface_shell_pipes:
-    gmsh.model.addPhysicalGroup(2, iface_shell_pipes,         tag=25, name="iface_shell_pipes")
+    gmsh.model.addPhysicalGroup(2, iface_shell_pipes, tag=25, name="iface_shell_pipes")
 if iface_shell_baffles:
-    gmsh.model.addPhysicalGroup(2, iface_shell_baffles,       tag=26, name="iface_shell_baffles")
+    gmsh.model.addPhysicalGroup(
+        2, iface_shell_baffles, tag=26, name="iface_shell_baffles"
+    )
 if iface_pipes_baffles:
-    gmsh.model.addPhysicalGroup(2, iface_pipes_baffles,       tag=27, name="iface_pipes_baffles")
+    gmsh.model.addPhysicalGroup(
+        2, iface_pipes_baffles, tag=27, name="iface_pipes_baffles"
+    )
 if shell_outer_wall:
-    gmsh.model.addPhysicalGroup(2, shell_outer_wall,          tag=28, name="shell_outer_wall")
+    gmsh.model.addPhysicalGroup(2, shell_outer_wall, tag=28, name="shell_outer_wall")
 
 ###############################################################################
 # MESH SETTINGS
